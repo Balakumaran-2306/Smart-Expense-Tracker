@@ -1,0 +1,55 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Budget Check{% endblock %}
+{% block content %}
+<h4 class="page-title mb-4">🛡️ Budget Check</h4>
+<div class="form-card">
+  <div class="card mb-4">
+    <div class="p-3 fw-bold" style="border-bottom:1px solid var(--border);">Set Your Monthly Budget</div>
+    <div class="p-4">
+      <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Monthly Limit (₹)</label>
+          <div class="input-group input-group-lg">
+            <span class="input-group-text">₹</span>
+            <input type="number" name="limit" class="form-control" placeholder="e.g. 10000" step="0.01" min="1" required/>
+          </div>
+          <div class="form-text">We'll compare this against your current month's expenses.</div>
+        </div>
+        <button type="submit" class="btn btn-blue w-100 fw-semibold py-2">
+          <i class="bi bi-shield-check me-1"></i> Check Budget
+        </button>
+      </form>
+    </div>
+  </div>
+  {% if result %}
+  <div class="card border-{% if result.exceeded %}danger{% else %}success{% endif %}">
+    <div class="p-3 fw-bold text-white {% if result.exceeded %}bg-danger{% else %}bg-success{% endif %}" style="border-radius:.875rem .875rem 0 0;">
+      {% if result.exceeded %}⚠️ Budget Exceeded — {{ result.month }}
+      {% else %}✅ Budget Under Control — {{ result.month }}{% endif %}
+    </div>
+    <div class="p-4">
+      <div class="row text-center mb-3">
+        <div class="col">
+          <div class="text-muted small">Your Limit</div>
+          <div class="fw-bold fs-5">₹{{ result.limit|floatformat:2 }}</div>
+        </div>
+        <div class="col">
+          <div class="text-muted small">Total Spent</div>
+          <div class="fw-bold fs-5 {% if result.exceeded %}text-danger{% else %}text-success{% endif %}">
+            ₹{{ result.total_expense|floatformat:2 }}
+          </div>
+        </div>
+      </div>
+      <div class="progress" style="height:18px;border-radius:.5rem;">
+        <div class="progress-bar {% if result.exceeded %}bg-danger{% else %}bg-success{% endif %} fw-semibold"
+             style="width:{{ result.percentage }}%;font-size:.75rem;">
+          {{ result.percentage|floatformat:1 }}%
+        </div>
+      </div>
+      <div class="text-muted small mt-1 text-end">{{ result.percentage|floatformat:1 }}% of budget used</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h4 class="page-title mb-0">Dashboard</h4>
+    <p class="text-muted small mb-0">Hello, {{ user.username }} 👋</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'add_income' %}"  class="btn btn-sm fw-semibold" style="background:#def7ec;color:#057a55;border-radius:.6rem;"><i class="bi bi-plus-lg"></i> Income</a>
+    <a href="{% url 'add_expense' %}" class="btn btn-sm fw-semibold" style="background:#fde8e8;color:#c81e1e;border-radius:.6rem;"><i class="bi bi-dash-lg"></i> Expense</a>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-lbl">Total Income</div>
+          <div class="stat-val text-success">₹{{ total_income|floatformat:2 }}</div>
+        </div>
+        <div class="stat-icon" style="background:#def7ec;color:#057a55;">💰</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-lbl">Total Expense</div>
+          <div class="stat-val text-danger">₹{{ total_expense|floatformat:2 }}</div>
+        </div>
+        <div class="stat-icon" style="background:#fde8e8;color:#c81e1e;">💸</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-lbl">Balance</div>
+          <div class="stat-val {% if balance >= 0 %}text-primary{% else %}text-danger{% endif %}">₹{{ balance|floatformat:2 }}</div>
+        </div>
+        <div class="stat-icon" style="background:#e8f0fe;color:#1a56db;">📊</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 1: Pie + Bar -->
+<div class="row g-3 mb-4">
+  <div class="col-md-5">
+    <div class="card p-3 h-100">
+      <div class="fw-bold mb-1" style="font-size:.9rem;">💸 Expense by Category</div>
+      <p class="text-muted mb-3" style="font-size:.75rem;">Where your money is going</p>
+      <div style="position:relative;height:230px;">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <div class="card p-3 h-100">
+      <div class="fw-bold mb-1" style="font-size:.9rem;">📊 Income vs Expense</div>
+      <p class="text-muted mb-3" style="font-size:.75rem;">Overall comparison</p>
+      <div style="position:relative;height:230px;">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 2: Line -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card p-3">
+      <div class="fw-bold mb-1" style="font-size:.9rem;">📈 Last 6 Months Trend</div>
+      <p class="text-muted mb-3" style="font-size:.75rem;">Monthly income vs expense overview</p>
+      <div style="position:relative;height:220px;">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <a href="{% url 'add_income' %}" class="card p-3 text-decoration-none d-flex flex-row align-items-center gap-2" style="border-left:3px solid #057a55;">
+      <i class="bi bi-plus-circle-fill text-success fs-5"></i>
+      <span class="fw-semibold" style="font-size:.85rem;color:#111;">Add Income</span>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'add_expense' %}" class="card p-3 text-decoration-none d-flex flex-row align-items-center gap-2" style="border-left:3px solid #c81e1e;">
+      <i class="bi bi-dash-circle-fill text-danger fs-5"></i>
+      <span class="fw-semibold" style="font-size:.85rem;color:#111;">Add Expense</span>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'report' %}" class="card p-3 text-decoration-none d-flex flex-row align-items-center gap-2" style="border-left:3px solid #1a56db;">
+      <i class="bi bi-bar-chart-fill text-primary fs-5"></i>
+      <span class="fw-semibold" style="font-size:.85rem;color:#111;">Reports</span>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{% url 'budget' %}" class="card p-3 text-decoration-none d-flex flex-row align-items-center gap-2" style="border-left:3px solid #c27803;">
+      <i class="bi bi-shield-fill-check fs-5" style="color:#c27803;"></i>
+      <span class="fw-semibold" style="font-size:.85rem;color:#111;">Budget Check</span>
+    </a>
+  </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card table-wrap">
+  <div class="d-flex justify-content-between align-items-center p-3" style="border-bottom:1px solid var(--border);">
+    <h6 class="fw-bold mb-0">Recent Transactions</h6>
+    <a href="{% url 'transactions' %}" class="btn btn-sm btn-outline-secondary" style="font-size:.78rem;border-radius:.5rem;">View All <i class="bi bi-arrow-right ms-1"></i></a>
+  </div>
+  {% if recent %}
+  <table class="table table-hover mb-0">
+    <thead>
+      <tr><th>Date</th><th>Type</th><th>Amount</th><th>Detail</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for t in recent %}
+      <tr>
+        <td>
+          <div style="font-size:.85rem;">{{ t.date }}</div>
+          <div style="font-size:.72rem;color:var(--muted);">{{ t.time }}</div>
+        </td>
+        <td><span class="badge-{{ t.transaction_type }}">{{ t.transaction_type|capfirst }}</span></td>
+        <td class="fw-semibold {% if t.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+          {% if t.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ t.amount|floatformat:2 }}
+        </td>
+        <td style="font-size:.88rem;">{{ t.detail }}</td>
+        <td>
+          <a href="{% url 'update' t.pk %}" class="btn btn-sm btn-outline-secondary me-1" style="padding:.2rem .5rem;"><i class="bi bi-pencil"></i></a>
+          <form method="POST" action="{% url 'delete' t.pk %}" class="d-inline" onsubmit="return confirm('Delete this transaction?')">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" style="padding:.2rem .5rem;"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="text-center text-muted py-5">
+    <div style="font-size:2.5rem;">📭</div>
+    <p class="mt-2 mb-1">No transactions yet.</p>
+    <a href="{% url 'add_income' %}" class="btn btn-sm btn-blue">Add your first income</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+const COLORS = ['#1a56db','#057a55','#c81e1e','#c27803','#7e3af2','#0694a2','#e74694','#ff5a1f'];
+
+fetch("{% url 'chart_data' %}")
+  .then(r => r.json())
+  .then(data => {
+
+    // 1. PIE CHART
+    if (data.pie.labels.length > 0) {
+      new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+          labels: data.pie.labels,
+          datasets: [{ data: data.pie.amounts, backgroundColor: COLORS, borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, usePointStyle: true } },
+            tooltip: { callbacks: { label: ctx => ` ₹${ctx.parsed.toLocaleString('en-IN')}` } }
+          }
+        }
+      });
+    } else {
+      document.getElementById('pieChart').parentElement.innerHTML =
+        '<div class="text-center text-muted" style="padding-top:5rem;">No expense data yet.<br><a href="/add/expense/">Add an expense</a></div>';
+    }
+
+    // 2. BAR CHART
+    new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Income', 'Expense'],
+        datasets: [{
+          data: [data.bar.income, data.bar.expense],
+          backgroundColor: ['rgba(5,122,85,.15)', 'rgba(200,30,30,.15)'],
+          borderColor: ['#057a55', '#c81e1e'],
+          borderWidth: 2, borderRadius: 8, borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ₹${ctx.parsed.y.toLocaleString('en-IN')}` } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 3. LINE CHART
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: data.line.labels,
+        datasets: [
+          { label: 'Income',  data: data.line.income,  borderColor: '#057a55', backgroundColor: 'rgba(5,122,85,.08)',   fill: true, tension: 0.4, pointBackgroundColor: '#057a55', pointRadius: 4, borderWidth: 2 },
+          { label: 'Expense', data: data.line.expense, borderColor: '#c81e1e', backgroundColor: 'rgba(200,30,30,.08)', fill: true, tension: 0.4, pointBackgroundColor: '#c81e1e', pointRadius: 4, borderWidth: 2 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true, padding: 16 } },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ₹${ctx.parsed.y.toLocaleString('en-IN')}` } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+  })
+  .catch(err => console.error('Chart error:', err));
+</script>
+{% endblock %}

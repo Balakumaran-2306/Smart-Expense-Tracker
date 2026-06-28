@@ -1,0 +1,20 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Welcome — Expense Tracker{% endblock %}
+{% block content %}
+<div class="welcome-wrap">
+  <div class="welcome-card">
+    <div class="welcome-badge"><i class="bi bi-stars"></i> Smart Finance Manager</div>
+    <h1 class="welcome-title">Welcome to<br><span>Expense Tracker</span></h1>
+    <p class="welcome-sub">Track your income, manage expenses, and take control of your finances — all in one clean dashboard.</p>
+    <div class="welcome-btns">
+      <a href="/login" class="btn-white"><i class="bi bi-box-arrow-in-right me-1"></i> Login</a>
+      <a href="/register" class="btn-outline-white"><i class="bi bi-person-plus me-1"></i> Register</a>
+    </div>
+    <div class="welcome-stats">
+      <div><div class="num">₹∞</div><div class="lbl">Track Any Amount</div></div>
+      <div><div class="num">100%</div><div class="lbl">Free to Use</div></div>
+      <div><div class="num">Safe</div><div class="lbl">Your Data Only</div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
