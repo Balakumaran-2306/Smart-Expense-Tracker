@@ -2,87 +2,127 @@
 {% block title %}Monthly Report{% endblock %}
 {% block content %}
 <h4 class="page-title mb-4">📊 Monthly Report</h4>
+
+<!-- Monthly Bar Chart -->
 <div class="card p-3 mb-4">
   <div class="fw-bold mb-1" style="font-size:.9rem;">📅 Monthly Income vs Expense</div>
   <p class="text-muted mb-3" style="font-size:.75rem;">Last 6 months trend</p>
-  <div style="position:relative;height:260px;"><canvas id="monthlyChart"></canvas></div>
+  <div style="position:relative;height:260px;">
+    <canvas id="monthlyChart"></canvas>
+  </div>
 </div>
+
 <div class="row g-3">
-  <div class="col-12 col-md-5">
+  <!-- Pie Chart -->
+  <div class="col-md-5">
     <div class="card p-3 h-100">
       <div class="fw-bold mb-1" style="font-size:.9rem;">💸 Expense by Category</div>
       <p class="text-muted mb-3" style="font-size:.75rem;">All time breakdown</p>
-      <div style="position:relative;height:230px;"><canvas id="pieChart"></canvas></div>
+      <div style="position:relative;height:230px;">
+        <canvas id="pieChart"></canvas>
+      </div>
     </div>
   </div>
-  <div class="col-12 col-md-7">
+
+  <!-- Category Table -->
+  <div class="col-md-7">
     <div class="card h-100">
       <div class="p-3 fw-bold" style="border-bottom:1px solid var(--border);font-size:.9rem;">💸 Category Breakdown</div>
       {% if expense_by_category %}
-      <div class="table-wrap">
-        <table class="table mb-0">
-          <thead><tr><th>Category</th><th class="text-end">Total Spent</th></tr></thead>
-          <tbody>
-            {% for row in expense_by_category %}
-            <tr><td><span class="badge-expense">{{ row.detail }}</span></td><td class="text-end fw-semibold text-danger">₹{{ row.total|floatformat:2 }}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <table class="table mb-0">
+        <thead><tr><th>Category</th><th class="text-end">Total Spent</th></tr></thead>
+        <tbody>
+          {% for row in expense_by_category %}
+          <tr>
+            <td><span class="badge-expense">{{ row.detail }}</span></td>
+            <td class="text-end fw-semibold text-danger">₹{{ row.total|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
       {% else %}
-      <div class="empty-state">
-        <div class="es-icon">📂</div>
-        <h6>No expense data yet</h6>
-        <p>Add some expenses to see category-wise breakdown here.</p>
-        <a href="{% url 'add_expense' %}" class="btn btn-sm btn-danger fw-semibold">− Add Expense</a>
-      </div>
+      <div class="text-center text-muted py-4">No expense data yet.</div>
       {% endif %}
     </div>
   </div>
+
+  <!-- Monthly Summary Table -->
   <div class="col-12">
     <div class="card">
       <div class="p-3 fw-bold" style="border-bottom:1px solid var(--border);font-size:.9rem;">📅 Month-wise Summary</div>
       {% if monthly %}
-      <div class="table-wrap">
-        <table class="table mb-0">
-          <thead><tr><th>Month</th><th class="text-center">Income</th><th class="text-center">Expense</th></tr></thead>
-          <tbody>
-            {% for month, data in monthly %}
-            <tr>
-              <td class="fw-semibold">{{ month }}</td>
-              <td class="text-center text-success fw-semibold">₹{{ data.income|floatformat:2 }}</td>
-              <td class="text-center text-danger fw-semibold">₹{{ data.expense|floatformat:2 }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <table class="table mb-0">
+        <thead><tr><th>Month</th><th class="text-center">Income</th><th class="text-center">Expense</th></tr></thead>
+        <tbody>
+          {% for month, data in monthly %}
+          <tr>
+            <td class="fw-semibold">{{ month }}</td>
+            <td class="text-center text-success fw-semibold">₹{{ data.income|floatformat:2 }}</td>
+            <td class="text-center text-danger fw-semibold">₹{{ data.expense|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
       {% else %}
-      <div class="empty-state">
-        <div class="es-icon">📅</div>
-        <h6>No monthly data yet</h6>
-        <p>Your month-wise summary will appear here once you add transactions.</p>
-        <div class="d-flex gap-2 justify-content-center flex-wrap">
-          <a href="{% url 'add_income' %}"  class="btn btn-sm btn-success fw-semibold">+ Add Income</a>
-          <a href="{% url 'add_expense' %}" class="btn btn-sm btn-danger fw-semibold">− Add Expense</a>
-        </div>
-      </div>
+      <div class="text-center text-muted py-4">No data yet.</div>
       {% endif %}
     </div>
   </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <script>
-const COLORS=['#1a56db','#057a55','#c81e1e','#c27803','#7e3af2','#0694a2','#e74694','#ff5a1f'];
-fetch("{% url 'chart_data' %}").then(r=>r.json()).then(data=>{
-  new Chart(document.getElementById('monthlyChart'),{type:'bar',data:{labels:data.line.labels,datasets:[{label:'Income',data:data.line.income,backgroundColor:'rgba(5,122,85,.2)',borderColor:'#057a55',borderWidth:2,borderRadius:6},{label:'Expense',data:data.line.expense,backgroundColor:'rgba(200,30,30,.2)',borderColor:'#c81e1e',borderWidth:2,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ₹${ctx.parsed.y.toLocaleString('en-IN')}`}}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),maxTicksLimit:5}},x:{grid:{display:false}}}}});
-  if(data.pie.labels.length>0){
-    new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:data.pie.labels,datasets:[{data:data.pie.amounts,backgroundColor:COLORS,borderWidth:3,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:ctx=>` ₹${ctx.parsed.toLocaleString('en-IN')}`}}}}});
-  } else {
-    document.getElementById('pieChart').parentElement.innerHTML='<div class="empty-state" style="padding:2rem;"><div class="es-icon" style="font-size:2rem;">📊</div><p style="font-size:.8rem;margin:0;">No expense data to show chart</p></div>';
-  }
-});
+const COLORS = ['#1a56db','#057a55','#c81e1e','#c27803','#7e3af2','#0694a2','#e74694','#ff5a1f'];
+
+fetch("{% url 'chart_data' %}")
+  .then(r => r.json())
+  .then(data => {
+
+    // Monthly grouped bar chart
+    new Chart(document.getElementById('monthlyChart'), {
+      type: 'bar',
+      data: {
+        labels: data.line.labels,
+        datasets: [
+          { label: 'Income',  data: data.line.income,  backgroundColor: 'rgba(5,122,85,.2)',   borderColor: '#057a55', borderWidth: 2, borderRadius: 6 },
+          { label: 'Expense', data: data.line.expense, backgroundColor: 'rgba(200,30,30,.2)', borderColor: '#c81e1e', borderWidth: 2, borderRadius: 6 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { usePointStyle: true, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ₹${ctx.parsed.y.toLocaleString('en-IN')}` } }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Pie chart
+    if (data.pie.labels.length > 0) {
+      new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+          labels: data.pie.labels,
+          datasets: [{ data: data.pie.amounts, backgroundColor: COLORS, borderWidth: 3, borderColor: '#fff' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true } },
+            tooltip: { callbacks: { label: ctx => ` ₹${ctx.parsed.toLocaleString('en-IN')}` } }
+          }
+        }
+      });
+    } else {
+      document.getElementById('pieChart').parentElement.innerHTML =
+        '<div class="text-center text-muted py-4">No expense data yet.</div>';
+    }
+  });
 </script>
 {% endblock %}
