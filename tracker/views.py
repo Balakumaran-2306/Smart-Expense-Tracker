@@ -22,23 +22,31 @@ def homepage(request):
 
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     if request.method == "POST":
-        username     = request.POST['username']
-        password     = request.POST['userpassword']
-        confirm_pass = request.POST.get('confirmpassword', password)
+        username     = request.POST.get('username', '').strip()
+        password     = request.POST.get('userpassword', '')
+        confirm_pass = request.POST.get('confirmpassword', '')
 
+        if not username or not password or not confirm_pass:
+            messages.error(request, '❌ All fields are required.')
+            return render(request, 'tracker/Register.html')
+        if len(username) < 3:
+            messages.error(request, '❌ Username must be at least 3 characters.')
+            return render(request, 'tracker/Register.html')
         if User.objects.filter(username=username).exists():
-            messages.error(request, '❌ Username already exists!')
+            messages.error(request, f'❌ Username "{username}" already exists. Try another.')
             return render(request, 'tracker/Register.html')
         if len(password) < 4:
             messages.error(request, '❌ Password must be at least 4 characters.')
             return render(request, 'tracker/Register.html')
-        if confirm_pass != password:
-            messages.error(request, '❌ Passwords do not match!')
+        if password != confirm_pass:
+            messages.error(request, '❌ Passwords do not match. Please try again.')
             return render(request, 'tracker/Register.html')
 
         User.objects.create_user(username=username, password=password)
-        messages.success(request, '✅ Account created! Please login.')
+        messages.success(request, f'✅ Account created successfully! Welcome, {username}. Please login.')
         return redirect('login')
 
     return render(request, 'tracker/Register.html')
@@ -48,21 +56,25 @@ def loginresponse(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        if not username or not password:
+            messages.error(request, '❌ Please enter both username and password.')
+            return render(request, 'tracker/login.html')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             messages.success(request, f'✅ Welcome back, {username}!')
             return redirect('dashboard')
         else:
-            messages.error(request, '❌ Invalid username or password.')
+            messages.error(request, '❌ Invalid username or password. Please try again.')
     return render(request, 'tracker/login.html')
 
 
 def logoutresponse(request):
+    username = request.user.username
     logout(request)
-    messages.info(request, '🔒 Logged out successfully.')
+    messages.success(request, f'👋 Logged out successfully. See you soon, {username}!')
     return redirect('home')
 
 
@@ -84,8 +96,8 @@ def dashboard(request):
 @login_required
 def add_income(request):
     if request.method == "POST":
-        amount = request.POST['amount']
-        source = request.POST['source']
+        amount = request.POST.get('amount', '').strip()
+        source = request.POST.get('source', '').strip()
         if not amount or not source:
             messages.error(request, '❌ Please fill in all fields.')
             return render(request, 'tracker/add_income.html')
@@ -101,7 +113,7 @@ def add_income(request):
             user=request.user, date=now.date(), time=now.time(),
             transaction_type='income', amount=amount, detail=source,
         )
-        messages.success(request, f'✅ Income of ₹{amount:.2f} added!')
+        messages.success(request, f'✅ Income of ₹{amount:.2f} added successfully!')
         return redirect('transactions')
     return render(request, 'tracker/add_income.html')
 
@@ -110,8 +122,8 @@ def add_income(request):
 def add_expense(request):
     CATEGORIES = ['Food', 'Travel', 'Groceries', 'Shopping', 'Bills', 'Health', 'Education', 'Other']
     if request.method == "POST":
-        amount   = request.POST['amount']
-        category = request.POST['category']
+        amount   = request.POST.get('amount', '').strip()
+        category = request.POST.get('category', '').strip()
         if not amount or not category:
             messages.error(request, '❌ Please fill in all fields.')
             return render(request, 'tracker/add_expense.html', {'categories': CATEGORIES})
@@ -127,7 +139,7 @@ def add_expense(request):
             user=request.user, date=now.date(), time=now.time(),
             transaction_type='expense', amount=amount, detail=category,
         )
-        messages.success(request, f'✅ Expense of ₹{amount:.2f} added!')
+        messages.success(request, f'✅ Expense of ₹{amount:.2f} under "{category}" added!')
         return redirect('transactions')
     return render(request, 'tracker/add_expense.html', {'categories': CATEGORIES})
 
@@ -151,8 +163,9 @@ def transactions(request):
 @login_required
 def delete_txn(request, pk):
     txn = get_object_or_404(Transaction, pk=pk, user=request.user)
+    info = f'₹{txn.amount} — {txn.detail}'
     txn.delete()
-    messages.success(request, '🗑️ Transaction deleted.')
+    messages.success(request, f'🗑️ Transaction ({info}) deleted successfully.')
     return redirect('transactions')
 
 
@@ -160,14 +173,21 @@ def delete_txn(request, pk):
 def update_txn(request, pk):
     txn = get_object_or_404(Transaction, pk=pk, user=request.user)
     if request.method == "POST":
-        try:
-            txn.amount = float(request.POST['amount'])
-        except ValueError:
-            messages.error(request, '❌ Invalid amount.')
+        amount = request.POST.get('amount', '').strip()
+        detail = request.POST.get('detail', '').strip()
+        if not amount or not detail:
+            messages.error(request, '❌ Please fill in all fields.')
             return render(request, 'tracker/update.html', {'txn': txn})
-        txn.detail = request.POST['detail']
+        try:
+            txn.amount = float(amount)
+            if txn.amount <= 0:
+                raise ValueError
+        except ValueError:
+            messages.error(request, '❌ Enter a valid positive amount.')
+            return render(request, 'tracker/update.html', {'txn': txn})
+        txn.detail = detail
         txn.save()
-        messages.success(request, '✅ Transaction updated!')
+        messages.success(request, '✅ Transaction updated successfully!')
         return redirect('transactions')
     return render(request, 'tracker/update.html', {'txn': txn})
 
@@ -198,8 +218,10 @@ def budget(request):
     if request.method == "POST":
         try:
             limit = Decimal(request.POST['limit'])
+            if limit <= 0:
+                raise ValueError
         except Exception:
-            messages.error(request, '❌ Enter a valid amount.')
+            messages.error(request, '❌ Enter a valid positive budget amount.')
             return render(request, 'tracker/budget.html')
         today = date.today()
         total_expense = (
@@ -233,7 +255,6 @@ def export_csv(request):
 
 @login_required
 def chart_data(request):
-    # 1. Pie — expense by category
     expense_rows = (
         Transaction.objects
         .filter(user=request.user, transaction_type='expense')
@@ -241,12 +262,8 @@ def chart_data(request):
     )
     pie_labels  = [r['detail'] for r in expense_rows]
     pie_amounts = [float(r['total']) for r in expense_rows]
-
-    # 2. Bar — total income vs expense
     total_income  = Transaction.objects.filter(user=request.user, transaction_type='income').aggregate(total=Sum('amount'))['total'] or 0
     total_expense = Transaction.objects.filter(user=request.user, transaction_type='expense').aggregate(total=Sum('amount'))['total'] or 0
-
-    # 3. Line — last 6 months
     today = date.today()
     monthly_labels, monthly_income, monthly_expense = [], [], []
     for i in range(5, -1, -1):
@@ -257,7 +274,6 @@ def chart_data(request):
         exp = Transaction.objects.filter(user=request.user, transaction_type='expense', date__month=month, date__year=year).aggregate(total=Sum('amount'))['total'] or 0
         monthly_income.append(float(inc))
         monthly_expense.append(float(exp))
-
     return JsonResponse({
         'pie':  {'labels': pie_labels, 'amounts': pie_amounts},
         'bar':  {'income': float(total_income), 'expense': float(total_expense)},
