@@ -6,17 +6,7 @@
 
 # 🖼️ Project Banner
 
-> **📍 Replace the placeholder below with your project banner after creating it.**
-
-```text
-[ Project Banner Here ]
-```
-
-Example:
-
-```
-assets/cover.png
-```
+> ![Project Banner](assets/01-cover.jpeg)
 
 ---
 
@@ -69,63 +59,74 @@ The project demonstrates practical implementation of authentication, CRUD operat
 
 # 📸 Application Screenshots
 
-## 🔐 Login Page
+## 🔐 Login
 
-> **📍 Add Login Screenshot Here**
+![Login](assets/02-login.png)
 
-```text
-assets/screenshots/login.png
-```
+---
+
+## 📝 Register
+
+![Register](assets/03-register.png)
 
 ---
 
 ## 📊 Dashboard
 
-> **📍 Add Dashboard Screenshot Here**
+### Overview
 
-```text
-assets/screenshots/dashboard.png
-```
+![Dashboard](assets/04-dashboard-1.png)
 
----
+### Analytics
 
-## 💵 Transactions
-
-> **📍 Add Transactions Screenshot Here**
-
-```text
-assets/screenshots/transactions.png
-```
+![Dashboard](assets/05-dashboard2.png)
 
 ---
 
-## 📈 Reports & Charts
+## 💰 Add Income
 
-> **📍 Add Reports Screenshot Here**
-
-```text
-assets/screenshots/reports.png
-```
+![Add Income](assets/06-add-income.png)
 
 ---
 
-## 💰 Budget Management
+## 💸 Add Expense
 
-> **📍 Add Budget Screenshot Here**
-
-```text
-assets/screenshots/budget.png
-```
+![Add Expense](assets/07-add-expense.png)
 
 ---
+
+## 📈 Monthly Report
+
+![Monthly Report](assets/08-monthly-report.png)
+
+---
+
+## 📋 Transactions
+
+![Transactions](assets/09-transactions.png)
+
+---
+
+## 💰 Budget
+
+![Budget](assets/10-budget.png)
+
+---
+
+## 📱 Mobile View
+
+### Dashboard
+
+![Mobile Dashboard](assets/11-mobile-view1.jpg)
+
+### Navigation
+
+![Mobile Navigation](assets/12-mobile-view2.jpg)
 
 # 🎥 Project Demo
 
 > **📍 Add Demo GIF or Screen Recording Here**
 
-```text
-assets/demo/demo.gif
-```
 
 ---
 
