@@ -123,12 +123,12 @@ The project demonstrates practical implementation of authentication, CRUD operat
 
 ![Mobile Navigation](assets/12-mobile-view2.jpg)
 
-# 🎥 Project Demo
+## 🎥 Project Demo
 
-> **📍 Add Demo GIF or Screen Recording Here**
+Watch the complete project walkthrough below:
 
+[▶️ Smart Expense Tracker Demo](assets/demo-video.mp4)
 
----
 
 # 📂 Project Structure
 
